@@ -29,6 +29,8 @@ module.exports = function onHeaders(res, listener) {
     throw new TypeError('argument listener must be a function')
   }
 
+  // res.writeHead 原始Node.js request对象的方法
+  // res.writeHead 在调用方法res.end结束前调用, 首次响应客户端的时间
   res.writeHead = createWriteHead(res.writeHead, listener)
 }
 
@@ -43,9 +45,11 @@ function createWriteHead(prevWriteHead, listener) {
     // fire listener
     if (!fired) {
       fired = true
+      // this代表 response
       listener.call(this)
 
       // pass-along an updated status code
+      // 将状态码更新
       if (typeof args[0] === 'number' && this.statusCode !== args[0]) {
         args[0] = this.statusCode
         args.length = 1
@@ -58,10 +62,13 @@ function createWriteHead(prevWriteHead, listener) {
 
 function setWriteHeadHeaders(statusCode) {
   var length = arguments.length
+
+  // headerIndex表示当前参数中的第几个是设置响应头的位置
   var headerIndex = length > 1 && typeof arguments[1] === 'string'
     ? 2
     : 1
 
+  // headers表示响应头
   var headers = length >= headerIndex + 1
     ? arguments[headerIndex]
     : undefined
@@ -69,12 +76,14 @@ function setWriteHeadHeaders(statusCode) {
   this.statusCode = statusCode
 
   // the following block is from node.js core
+  // 响应头是否形如: [['content-type', 'urlencode..'], []]
   if (Array.isArray(headers)) {
     // handle array case
     for (var i = 0, len = headers.length; i < len; ++i) {
       this.setHeader(headers[i][0], headers[i][1])
     }
   } else if (headers) {
+    // 响应头形如{'content-type': 'application/json', attr2: value2, ...}
     // handle object case
     var keys = Object.keys(headers)
     for (var i = 0; i < keys.length; i++) {
@@ -84,6 +93,7 @@ function setWriteHeadHeaders(statusCode) {
   }
 
   // copy leading arguments
+  // 返回除header外的参数
   var args = new Array(Math.min(length, headerIndex))
   for (var i = 0; i < args.length; i++) {
     args[i] = arguments[i]
