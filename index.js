@@ -12,6 +12,9 @@
 
 var slice = Array.prototype.slice
 
+// Q1: writeHead在什么时候被调用?
+// Q2: writeHead 设置响应头的方式有几种, 分别是什么?
+
 /**
  * Execute a listener when a response is about to write headers.
  *
